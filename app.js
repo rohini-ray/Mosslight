@@ -1,24 +1,37 @@
-const MODEL_ID = 'onnx-community/gemma-3-270m-it-ONNX';
+const MODEL_ID = 'google/gemma-4-26b-a4b-it:free';
 const statusEl = document.querySelector('#model-status');
 const form = document.querySelector('#garden-form');
 const button = document.querySelector('.submit-button');
-let generatorPromise;
-
-async function getGenerator() {
-  if (!generatorPromise) {
-    generatorPromise = import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0')
-      .then(({ pipeline, env }) => {
-        env.allowLocalModels = false;
-        return pipeline('text-generation', MODEL_ID, { dtype: 'q4f16' });
-      });
-    generatorPromise.catch(() => { generatorPromise = undefined; });
-  }
-  return generatorPromise;
-}
-
 function planPrompt(data) {
   const frost = data.frost ? `The user's last frost date is ${data.frost}.` : 'The last frost date is unknown, so avoid suggesting tender plants outdoors.';
   return `You are Mosslight, a kind, practical garden coach. Make a very short plan for a beginner. Context: place ${data.location}; growing space ${data.space}; light ${data.sun}; interest ${data.interest}; preferred effort ${data.pace}. ${frost} Give exactly four numbered steps: one ten-minute outdoor action today, one suitable beginner plant or seed, one simple care tip, and one reminder to check local frost conditions. Never invent local weather or frost dates. Keep each step to one sentence. Under 85 words.`;
+}
+
+async function requestGardenPlan(data, apiKey) {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: MODEL_ID,
+      messages: [
+        { role: 'system', content: 'You are Mosslight, a kind, practical garden coach. Never invent local weather or frost dates. Keep advice beginner-friendly, concise, and safe for the stated space and sunlight. Return exactly four numbered steps under 85 words: one small outdoor action today, one suitable beginner plant or seed, one simple care tip, and one reminder to check local frost conditions.' },
+        { role: 'user', content: planPrompt(data) },
+      ],
+      max_tokens: 160,
+      temperature: 0.65,
+    }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = payload?.error?.message || `OpenRouter returned HTTP ${response.status}.`;
+    throw new Error(response.status === 401 || response.status === 403 ? 'OpenRouter rejected this API key. Check the key and try again.' : message);
+  }
+  const text = payload?.choices?.[0]?.message?.content?.trim();
+  if (!text || text.length < 40) throw new Error('Gemma returned an incomplete garden plan. Please try again.');
+  return text;
 }
 
 function fallbackPlan(data) {
@@ -42,33 +55,33 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!form.reportValidity()) return;
   const data = collectForm();
+  const apiKey = document.querySelector('#openrouter-key').value.trim();
+  if (!apiKey) {
+    showToast('Add your OpenRouter API key to ask Gemma 4 for a plan.');
+    document.querySelector('#openrouter-key').focus();
+    return;
+  }
   button.disabled = true;
   button.querySelector('.button-label').textContent = 'WAKING GEMMA…';
-  statusEl.textContent = 'Loading Gemma on your device';
+  statusEl.textContent = 'Asking Gemma 4 through OpenRouter';
   let plan;
   let usedModel = false;
   try {
-    const generate = await getGenerator();
-    const result = await generate([{ role: 'user', content: planPrompt(data) }], { max_new_tokens: 128, temperature: 0.65, do_sample: true, repetition_penalty: 1.12 });
-    const generated = result?.[0]?.generated_text;
-    plan = Array.isArray(generated)
-      ? generated.filter((message) => message.role === 'assistant').at(-1)?.content?.trim()
-      : generated?.trim();
-    if (!plan || plan.length < 40) throw new Error('The model returned an incomplete plan.');
+    plan = await requestGardenPlan(data, apiKey);
     usedModel = true;
-    statusEl.textContent = 'Gemma is ready on this device';
+    statusEl.textContent = 'Gemma 4 is ready when you are';
   } catch (error) {
-    console.warn('Local model unavailable; using the built-in garden guide.', error);
+    console.warn('OpenRouter garden-plan request failed.', error);
     plan = fallbackPlan(data);
-    statusEl.textContent = 'Ready for a little garden planning';
-    showToast('Using the built-in guide — Gemma needs its first download and a device with enough memory.');
+    statusEl.textContent = 'Using the built-in garden guide';
+    showToast(`${error.message} Showing the built-in guide instead.`);
   } finally {
     button.disabled = false;
     button.querySelector('.button-label').textContent = 'MAKE MY GARDEN PLAN';
   }
   document.querySelector('#plan-location').textContent = data.location.toUpperCase();
   document.querySelector('#plan-text').textContent = plan;
-  document.querySelector('#model-credit').textContent = usedModel ? 'GEMMA 3 270M · ON DEVICE' : 'BUILT-IN GARDEN GUIDE · OFFLINE';
+  document.querySelector('#model-credit').textContent = usedModel ? 'GEMMA 4 · OPENROUTER' : 'BUILT-IN GARDEN GUIDE · FALLBACK';
   const result = document.querySelector('#result');
   result.classList.remove('hidden');
   result.scrollIntoView({ behavior: 'smooth', block: 'start' });

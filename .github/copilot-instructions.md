@@ -7,9 +7,8 @@ Mosslight should make planning a garden brief and make going outside the obvious
 ## Architecture
 
 - This is a static, dependency-light HTML/CSS/JavaScript app. Render publishes the repository root using `render.yaml`.
-- Gemma 3 270M is loaded on demand in the browser with Transformers.js. Model inference must stay client-side; never add a hosted inference API or send a user's location, frost date, or garden preferences to a server.
-- Preserve the deterministic built-in garden guide as a fallback when the model is unavailable.
-- Model files are large. Do not preload them on page load; keep the first-use download explicit and defer inference until the user requests a plan.
+- Gemma 4 is called through OpenRouter's chat completions API directly from the browser. Do not hard-code or persist API keys. Keep key entry session-only and explain that the user's garden details are sent to OpenRouter for inference.
+- Preserve the deterministic built-in garden guide as a fallback when the API is unavailable or rate limited.
 
 ## Garden guidance
 
@@ -21,5 +20,5 @@ Mosslight should make planning a garden brief and make going outside the obvious
 
 - Keep dependencies and build steps minimal so Render can serve the app as a static site.
 - Retain mobile layout, keyboard-accessible controls, reduced-motion support, and visible loading/fallback states.
-- When editing the model path, preserve the Transformers.js-compatible Gemma model and verify response parsing for chat-style generated messages.
-- Use Render pull request previews for visual review. Explain any model, privacy, or deployment tradeoffs in the README.
+- When editing the model path, preserve OpenRouter chat completions response parsing and keep the model ID centralized.
+- Explain model, API-key, privacy, and deployment tradeoffs in the README. Do not claim the app works offline while generation relies on OpenRouter.
