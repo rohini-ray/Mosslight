@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f4f1e8" />
+    <meta name="description" content="Mosslight is a private, on-device Gemma garden planner. Make a plan, then close the screen and step outside." />
+    <title>Mosslight — grow a little good thing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="Mosslight home"><span class="brand-mark">✳</span> mosslight</a>
+      <div class="top-note"><span class="status-dot"></span><span id="model-status">Local garden guide</span></div>
+      <a class="github-link" href="https://huggingface.co/onnx-community/gemma-3-270m-it-ONNX" target="_blank" rel="noreferrer">MEET GEMMA ↗</a>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> A SMALL REASON TO STEP OUTSIDE</div>
+          <h1>Grow a little<br /><em>good thing.</em></h1>
+          <p class="hero-intro">A garden plan for the patch of earth you have. Made on your device, then it’s just you and the dirt.</p>
+          <div class="hero-bottom"><div class="sun-icon">☼</div><span>Less scrolling. More growing.</span></div>
+        </div>
+        <div class="hero-art" aria-label="Illustration of a thriving garden bed">
+          <div class="art-sun"></div><div class="art-cloud cloud-one"></div><div class="art-cloud cloud-two"></div>
+          <div class="hill hill-back"></div><div class="hill hill-front"></div>
+          <div class="garden-bed"></div>
+          <div class="plant plant-a"><i></i><b></b><strong></strong></div>
+          <div class="plant plant-b"><i></i><b></b><strong></strong></div>
+          <div class="plant plant-c"><i></i><b></b><strong></strong></div>
+          <div class="plant plant-d"><i></i><b></b><strong></strong></div>
+          <div class="flower flower-a">✿</div><div class="flower flower-b">✿</div>
+          <div class="art-label">YOUR LITTLE<br />CORNER OF GREEN</div>
+          <div class="art-sticker">GROW<br /><span>slow</span></div>
+        </div>
+      </section>
+
+      <section class="planner" id="planner">
+        <div class="section-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR PATCH, YOUR PACE</div><h2>Let’s make a plan.</h2></div><span class="step-label">01 / 02</span></div>
+        <form id="garden-form" class="form-grid">
+          <label class="field field-wide"><span>WHERE ARE YOU GROWING?</span><div class="input-wrap"><span class="input-icon">⌖</span><input id="location" name="location" placeholder="City, region, or just your climate zone" required maxlength="80" /><span class="field-note">rough is fine</span></div></label>
+          <label class="field"><span>WHAT’S YOUR PATCH LIKE?</span><select id="space" name="space"><option value="a sunny balcony pot">☀ A sunny balcony pot</option><option value="a shady balcony or patio">◒ A shady balcony or patio</option><option value="a small raised garden bed">▱ A small raised bed</option><option value="a few containers by the door">▤ A few containers</option><option value="a bigger backyard garden">⌂ A backyard garden</option></select></label>
+          <label class="field"><span>HOW MUCH SUN DOES IT GET?</span><select id="sun" name="sun"><option value="full sun (6+ hours)">Bright most of the day</option><option value="partial sun (3–6 hours)">A few sunny hours</option><option value="mostly shade (under 3 hours)">Mostly in the shade</option></select></label>
+          <label class="field"><span>WHAT SOUNDS GOOD?</span><select id="interest" name="interest"><option value="easy herbs and leafy greens">Easy herbs & greens</option><option value="flowers for pollinators">Flowers for pollinators</option><option value="vegetables for the kitchen">Something for the kitchen</option><option value="a mix of flowers and food">A little of everything</option></select></label>
+          <label class="field"><span>YOUR GARDENING MOOD</span><select id="pace" name="pace"><option value="a low-effort, forgiving routine">Keep it low effort</option><option value="a relaxed weekend project">Happy to potter on weekends</option><option value="a hands-on daily ritual">Give me a daily ritual</option></select></label>
+          <div class="field field-wide frost-row"><label for="frost-date"><span>LAST FROST DATE <i>(IF YOU KNOW IT)</i></span><input id="frost-date" type="date" /></label><p>Not sure? Leave it blank. We’ll keep the advice gentle and frost-safe.</p></div>
+          <button class="submit-button" type="submit"><span class="button-label">MAKE MY GARDEN PLAN</span><span class="button-arrow">↗</span></button>
+        </form>
+        <div class="privacy-note"><span>◎</span> Your answers stay in this browser. Gemma’s one-time model download is about 500 MB.</div>
+      </section>
+
+      <section id="result" class="result hidden" aria-live="polite">
+        <div class="result-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR THIS-WEEK PLAN</div><h2>A little dirt, a lot of good.</h2></div><button id="edit-plan" class="text-button">↶ &nbsp; CHANGE MY PATCH</button></div>
+        <div class="plan-card"><div class="plan-meta"><span class="season-pill">✳ &nbsp; THIS WEEK</span><span id="plan-location"></span></div><p id="plan-text" class="plan-text"></p><div class="plan-divider"></div><div class="plan-footer"><span>MODEL MADE, LOCALLY</span><span id="model-credit">GEMMA 3 270M · OPEN WEIGHTS</span></div></div>
+        <div class="outside-nudge"><div class="nudge-icon">↗</div><div><span class="nudge-kicker">THAT’S YOUR CUE</span><p>Close this tab, find a pot, and give it ten minutes. A little counts.</p></div><span class="nudge-sprout">✳</span></div>
+      </section>
+
+      <footer><a class="brand footer-brand" href="#top"><span class="brand-mark">✳</span> mosslight</a><p>Open weights. Open air. All yours.</p><a href="https://huggingface.co/onnx-community/gemma-3-270m-it-ONNX" target="_blank" rel="noreferrer">GEMMA MODEL CARD ↗</a></footer>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
